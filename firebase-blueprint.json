@@ -1,0 +1,65 @@
+{
+  "entities": {
+    "Book": {
+      "title": "Book",
+      "description": "A collection of poems (anthology)",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Title of the anthology" },
+        "coverImageUrl": { "type": "string", "description": "Base64 or URL of the cover image" },
+        "userId": { "type": "string", "description": "Owner of the book" },
+        "createdAt": { "type": "number", "description": "Creation timestamp" },
+        "updatedAt": { "type": "number", "description": "Last update timestamp" },
+        "style": { "type": "string", "description": "Visual style for cover generation" }
+      },
+      "required": ["title", "userId", "createdAt", "updatedAt", "style"]
+    },
+    "Poem": {
+      "title": "Poem",
+      "description": "A single poem within an anthology",
+      "type": "object",
+      "properties": {
+        "bookId": { "type": "string", "description": "ID of the book this poem belongs to" },
+        "title": { "type": "string", "description": "Poem title" },
+        "content": { "type": "string", "description": "Poem text" },
+        "style": { "type": "string", "description": "Visual style for image generation" },
+        "imageUrl": { "type": "string", "description": "Base64 or URL of the poem image" },
+        "order": { "type": "number", "description": "Display order" },
+        "userId": { "type": "string", "description": "Owner of the poem" },
+        "createdAt": { "type": "number", "description": "Creation timestamp" },
+        "updatedAt": { "type": "number", "description": "Last update timestamp" },
+        "fontSize": { "type": "string", "description": "Font size preference" },
+        "textAlign": { "type": "string", "description": "Text alignment preference" },
+        "fontFamily": { "type": "string", "description": "Font family preference" },
+        "imageOpacity": { "type": "number", "description": "Opacity of the background image" }
+      },
+      "required": ["bookId", "title", "content", "style", "order", "userId", "createdAt"]
+    },
+    "AppSettings": {
+      "title": "AppSettings",
+      "description": "User preferences for the app",
+      "type": "object",
+      "properties": {
+        "themeColor": { "type": "string" },
+        "defaultStyle": { "type": "string" },
+        "defaultFontSize": { "type": "string" },
+        "photoOpacity": { "type": "number" },
+        "version": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "books": {
+      "schema": "Book",
+      "description": "User anthologies"
+    },
+    "poems": {
+      "schema": "Poem",
+      "description": "Poems belonging to anthologies"
+    },
+    "settings": {
+      "schema": "AppSettings",
+      "description": "User specific settings"
+    }
+  }
+}

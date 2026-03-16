@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: books
+    // Fields:
+    //   - title: string (required, 1-200 chars)
+    //   - coverImageUrl: string (optional, URL or base64)
+    //   - userId: string (required, must match auth.uid)
+    //   - createdAt: number (required, timestamp)
+    //   - updatedAt: number (required, timestamp)
+    //   - style: string (required, enum)
+    //
+    // Collection: poems
+    // Fields:
+    //   - bookId: string (required, reference to books)
+    //   - title: string (required, 1-200 chars)
+    //   - content: string (required, 1-5000 chars)
+    //   - style: string (required, enum)
+    //   - imageUrl: string (optional, URL or base64)
+    //   - order: number (required)
+    //   - userId: string (required, must match auth.uid)
+    //   - createdAt: number (required, timestamp)
+    //   - updatedAt: number (required, timestamp)
+    //   - fontSize: string (optional)
+    //   - textAlign: string (optional)
+    //   - fontFamily: string (optional)
+    //   - imageOpacity: number (optional)
+    //
+    // Collection: settings
+    // Document ID: userId
+    // Fields:
+    //   - themeColor: string
+    //   - defaultStyle: string
+    //   - defaultFontSize: string
+    //   - photoOpacity: number
+    //   - version: string
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "jabang78@gmail.com" && request.auth.token.email_verified == true));
+    }
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidBook(data) {
+      return data.keys().hasAll(['title', 'userId', 'createdAt', 'updatedAt', 'style']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             data.userId == request.auth.uid &&
+             data.createdAt is number &&
+             data.updatedAt is number &&
+             data.style is string;
+    }
+
+    function isValidPoem(data) {
+      return data.keys().hasAll(['bookId', 'title', 'content', 'style', 'order', 'userId', 'createdAt']) &&
+             data.bookId is string &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             data.content is string && data.content.size() > 0 && data.content.size() <= 10000 &&
+             data.style is string &&
+             data.order is number &&
+             data.userId == request.auth.uid &&
+             data.createdAt is number;
+    }
+
+    function isValidSettings(data) {
+      return data.keys().hasAny(['themeColor', 'defaultStyle', 'defaultFontSize', 'photoOpacity', 'version']) &&
+             (!('themeColor' in data) || data.themeColor is string) &&
+             (!('photoOpacity' in data) || data.photoOpacity is number);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+    match /books/{bookId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && isValidBook(request.resource.data);
+      allow update: if isAuthenticated() && (isDocOwner() || isAdmin()) && isValidBook(request.resource.data);
+      allow delete: if isAuthenticated() && (isDocOwner() || isAdmin());
+    }
+
+    match /poems/{poemId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && isValidPoem(request.resource.data);
+      allow update: if isAuthenticated() && (isDocOwner() || isAdmin()) && isValidPoem(request.resource.data);
+      allow delete: if isAuthenticated() && (isDocOwner() || isAdmin());
+    }
+
+    match /settings/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if (isOwner(userId) || isAdmin()) && isValidSettings(request.resource.data);
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isAdmin();
+    }
+  }
+}
