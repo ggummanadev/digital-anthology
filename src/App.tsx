@@ -1,6 +1,6 @@
 import { useState, useEffect, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Book, Save, Loader2, ChevronRight, ChevronLeft, FileCode, FileText, LogIn, LogOut, User, RefreshCw, Type, AlignLeft, AlignCenter, AlignRight, Wand2, Download, Palette, Settings, Trash2, Edit3, Image as ImageIcon, Upload, ArrowLeft, Share2, Database } from 'lucide-react';
+import { Plus, Book, Save, Loader2, ChevronRight, ChevronLeft, FileCode, FileText, LogIn, LogOut, User, RefreshCw, Type, AlignLeft, AlignCenter, AlignRight, Wand2, Download, Palette, Settings, Trash2, Edit3, Image as ImageIcon, Upload, ArrowLeft, Share2, Database, Eye } from 'lucide-react';
 import { Poem, Book as BookType, ImageStyle, IMAGE_STYLES, AVAILABLE_FONTS, AppSettings, DEFAULT_SETTINGS } from './types';
 import { generatePoemImage, generateBookCover } from './services/gemini';
 import { compressBase64Image } from './services/imageUtils';
@@ -843,68 +843,76 @@ export default function App() {
   return (
     <div className="min-h-screen font-serif selection:bg-stone-500/30" style={{ backgroundColor: settings.themeColor, color: 'var(--app-text)' }}>
       {/* Navigation Bar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-6 bg-white/50 backdrop-blur-md border-b border-black/5">
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentView('books')}>
-          <Book className="w-6 h-6 text-stone-500" />
-          <h1 className="text-xl font-light tracking-[0.2em] uppercase">나만의 시집 만들기</h1>
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-8 py-4 md:py-6 bg-white/95 backdrop-blur-md border-b border-black/5 transition-colors" style={{ backgroundColor: `${settings.themeColor}F2` }}>
+        <div className="flex items-center gap-2 md:gap-3 cursor-pointer" onClick={() => setCurrentView('books')}>
+          <Book className="w-5 h-5 md:w-6 md:h-6 text-stone-500" />
+          <h1 className="text-lg md:text-xl font-light tracking-[0.2em] uppercase hidden sm:block">나만의 시집 만들기</h1>
         </div>
         
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 md:gap-6">
           {user ? (
             <>
               <button 
                 onClick={() => setCurrentView('books')}
-                className={`text-sm tracking-widest uppercase transition-colors ${currentView === 'books' ? 'text-black font-bold' : 'text-stone-500 hover:text-stone-800'}`}
+                className={`text-xs md:text-sm tracking-widest uppercase transition-colors ${currentView === 'books' ? 'text-black font-bold' : 'text-stone-500 hover:text-stone-800'}`}
+                title="시집 목록"
               >
-                시집 목록
+                <span className="hidden md:inline">시집 목록</span>
+                <Book className="w-4 h-4 md:hidden" />
               </button>
               {currentBookId && (
                 <>
                   <button 
                     onClick={() => setCurrentView('editor')}
-                    className={`text-sm tracking-widest uppercase transition-colors ${currentView === 'editor' ? 'text-black font-bold' : 'text-stone-500 hover:text-stone-800'}`}
+                    className={`text-xs md:text-sm tracking-widest uppercase transition-colors ${currentView === 'editor' ? 'text-black font-bold' : 'text-stone-500 hover:text-stone-800'}`}
+                    title="에디터"
                   >
-                    에디터
+                    <span className="hidden md:inline">에디터</span>
+                    <Edit3 className="w-4 h-4 md:hidden" />
                   </button>
                   <button 
                     onClick={() => setCurrentView('preview')}
-                    className={`text-sm tracking-widest uppercase transition-colors ${currentView === 'preview' ? 'text-black font-bold' : 'text-stone-500 hover:text-stone-800'}`}
+                    className={`text-xs md:text-sm tracking-widest uppercase transition-colors ${currentView === 'preview' ? 'text-black font-bold' : 'text-stone-500 hover:text-stone-800'}`}
+                    title="미리보기"
                   >
-                    미리보기
+                    <span className="hidden md:inline">미리보기</span>
+                    <Eye className="w-4 h-4 md:hidden" />
                   </button>
                 </>
               )}
               <button 
                 onClick={() => setCurrentView('settings')}
                 className={`p-2 rounded-full transition-colors ${currentView === 'settings' ? 'bg-stone-200' : 'text-stone-500 hover:bg-stone-100'}`}
+                title="설정"
               >
-                <Settings className="w-5 h-5" />
+                <Settings className="w-4 h-4 md:w-5 md:h-5" />
               </button>
-              <div className="flex items-center gap-3 pl-6 border-l border-stone-200">
-                <div className="flex flex-col items-end">
+              <div className="flex items-center gap-2 md:gap-3 pl-3 md:pl-6 border-l border-stone-200">
+                <div className="hidden md:flex flex-col items-end">
                   <span className="text-[10px] text-stone-500 uppercase tracking-tighter">{user.displayName}</span>
                   <button onClick={handleLogout} className="text-[10px] text-stone-400 hover:text-stone-600 uppercase tracking-widest">Sign Out</button>
                 </div>
                 {user.photoURL ? (
-                  <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full border border-stone-200" />
+                  <img src={user.photoURL} alt="Sign Out" className="w-6 h-6 md:w-8 md:h-8 rounded-full border border-stone-200 cursor-pointer md:cursor-default" onClick={() => { if(window.innerWidth < 768) handleLogout() }} />
                 ) : (
-                  <User className="w-8 h-8 p-1 rounded-full border border-stone-200 text-stone-400" />
+                  <User className="w-6 h-6 md:w-8 md:h-8 p-1 rounded-full border border-stone-200 text-stone-400 cursor-pointer md:cursor-default" onClick={() => { if(window.innerWidth < 768) handleLogout() }} />
                 )}
               </div>
             </>
           ) : (
             <button 
               onClick={handleLogin}
-              className="flex items-center gap-2 px-6 py-2 text-xs tracking-widest uppercase transition-all bg-stone-800 text-white rounded-full hover:bg-black"
+              className="flex items-center gap-2 px-4 md:px-6 py-2 text-[10px] md:text-xs tracking-widest uppercase transition-all bg-stone-800 text-white rounded-full hover:bg-black"
             >
               <LogIn className="w-4 h-4" />
-              Sign In with Google
+              <span className="hidden sm:inline">Sign In with Google</span>
+              <span className="sm:hidden">Sign In</span>
             </button>
           )}
         </div>
       </nav>
 
-      <main className="pt-24 pb-12">
+      <main className={`pt-24 ${currentView === 'preview' ? '' : 'pb-12'}`}>
         {!user ? (
           <div className="flex flex-col items-center justify-center h-[60vh] px-6 text-center">
             <motion.div
@@ -1423,7 +1431,7 @@ export default function App() {
                           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
                           
                           {/* Floating Toolbar */}
-                          <div className="absolute top-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 p-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-full shadow-2xl">
+                          <div className="absolute bottom-24 md:bottom-28 left-1/2 -translate-x-1/2 z-30 flex flex-wrap justify-center items-center gap-2 p-2 w-[95%] md:w-auto bg-black/80 backdrop-blur-md border border-white/10 rounded-2xl md:rounded-full shadow-2xl">
                             <div className="flex items-center gap-1 px-2 border-r border-white/10">
                               {(['sm', 'base', 'lg', 'xl', '2xl', '3xl'] as Poem['fontSize'][]).map(size => (
                                 <button
@@ -1500,7 +1508,7 @@ export default function App() {
                           </div>
 
                           <div className="relative w-full h-full overflow-y-auto custom-scrollbar">
-                            <div className={`flex flex-col items-center justify-center min-h-full py-32 px-12 max-w-4xl mx-auto text-${poems[activePoemIndex].textAlign || 'center'}`} style={{ fontFamily: `'${poems[activePoemIndex].fontFamily || 'Noto Serif KR'}', serif` }}>
+                            <div className={`flex flex-col items-center justify-center min-h-full pt-12 pb-56 md:pt-24 md:pb-48 px-6 md:px-12 max-w-4xl mx-auto text-${poems[activePoemIndex].textAlign || 'center'}`} style={{ fontFamily: `'${poems[activePoemIndex].fontFamily || 'Noto Serif KR'}', serif` }}>
                               <motion.h2 
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -1523,7 +1531,7 @@ export default function App() {
                       </AnimatePresence>
 
                       {/* Controls */}
-                      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-8 z-20">
+                      <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-8 z-20">
                         <button 
                           onClick={() => setActivePoemIndex(prev => Math.max(0, prev - 1))}
                           disabled={activePoemIndex === 0}
