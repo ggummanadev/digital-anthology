@@ -32,27 +32,27 @@ export function SortablePoemItem({ poem, onRemove, onEdit }: SortablePoemItemPro
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-6 p-5 transition-all border border-stone-200 rounded-2xl bg-white group hover:border-stone-400 hover:shadow-md ${
+      className={`flex items-center gap-3 md:gap-6 p-3 md:p-5 transition-all border border-stone-200 rounded-2xl bg-white group hover:border-stone-400 hover:shadow-md ${
         isDragging ? 'opacity-50 border-stone-400 shadow-xl scale-105' : ''
       }`}
     >
       <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 text-stone-300 hover:text-stone-500 transition-colors">
-        <GripVertical className="w-5 h-5" />
+        <GripVertical className="w-4 h-4 md:w-5 md:h-5" />
       </div>
       
-      <div className="relative w-20 h-20 overflow-hidden rounded-xl bg-stone-50 shrink-0 border border-stone-100">
+      <div className="relative w-14 h-14 md:w-20 md:h-20 overflow-hidden rounded-xl bg-stone-50 shrink-0 border border-stone-100">
         {poem.imageUrl ? (
           <img src={poem.imageUrl} alt={poem.title} className="object-cover w-full h-full" referrerPolicy="no-referrer" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-stone-200">
-            <ImageIcon className="w-8 h-8" />
+            <ImageIcon className="w-6 h-6 md:w-8 md:h-8" />
           </div>
         )}
       </div>
       
       <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-bold text-stone-800 truncate mb-1">{poem.title || '제목 없음'}</h3>
-        <p className="text-[11px] text-stone-400 line-clamp-2 leading-relaxed">{poem.content.substring(0, 60)}...</p>
+        <h3 className="text-xs md:text-sm font-bold text-stone-800 truncate mb-0.5 md:mb-1">{poem.title || '제목 없음'}</h3>
+        <p className="text-[9px] md:text-[11px] text-stone-400 line-clamp-1 md:line-clamp-2 leading-relaxed">{poem.content.substring(0, 60)}...</p>
       </div>
 
       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">

@@ -1,6 +1,6 @@
 import { useState, useEffect, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Book, Save, Loader2, ChevronRight, ChevronLeft, FileCode, FileText, LogIn, LogOut, User, RefreshCw, Type, AlignLeft, AlignCenter, AlignRight, Wand2, Download, Palette, Settings, Trash2, Edit3, Image as ImageIcon, Upload, ArrowLeft, Share2, Database, Eye } from 'lucide-react';
+import { Plus, Book, Save, Loader2, ChevronRight, ChevronLeft, FileCode, FileText, LogIn, LogOut, User, RefreshCw, Type, AlignLeft, AlignCenter, AlignRight, Wand2, Download, Palette, Settings, Trash2, Edit3, Image as ImageIcon, Upload, ArrowLeft, Share2, Database, Eye, Maximize2, Minimize2 } from 'lucide-react';
 import { Poem, Book as BookType, ImageStyle, IMAGE_STYLES, AVAILABLE_FONTS, AppSettings, DEFAULT_SETTINGS } from './types';
 import { generatePoemImage, generateBookCover } from './services/gemini';
 import { compressBase64Image } from './services/imageUtils';
@@ -82,6 +82,7 @@ export default function App() {
   const [showBookModal, setShowBookModal] = useState(false);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; type: 'book' | 'poem' } | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Connection Test
   useEffect(() => {
@@ -843,7 +844,7 @@ export default function App() {
   return (
     <div className="min-h-screen font-serif selection:bg-stone-500/30" style={{ backgroundColor: settings.themeColor, color: 'var(--app-text)' }}>
       {/* Navigation Bar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-8 py-4 md:py-6 bg-white/95 backdrop-blur-md border-b border-black/5 transition-colors" style={{ backgroundColor: `${settings.themeColor}F2` }}>
+      <nav className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-8 py-4 md:py-6 bg-white/95 backdrop-blur-md border-b border-black/5 transition-all duration-500 ${isFullscreen && currentView === 'preview' ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`} style={{ backgroundColor: `${settings.themeColor}F2` }}>
         <div className="flex items-center gap-2 md:gap-3 cursor-pointer" onClick={() => setCurrentView('books')}>
           <Book className="w-5 h-5 md:w-6 md:h-6 text-stone-500" />
           <h1 className="text-lg md:text-xl font-light tracking-[0.2em] uppercase hidden sm:block">나만의 시집 만들기</h1>
@@ -912,7 +913,7 @@ export default function App() {
         </div>
       </nav>
 
-      <main className={`pt-24 ${currentView === 'preview' ? '' : 'pb-12'}`}>
+      <main className={`${isFullscreen && currentView === 'preview' ? 'pt-0' : 'pt-24'} ${currentView === 'preview' ? '' : 'pb-12'} transition-all duration-500`}>
         {!user ? (
           <div className="flex flex-col items-center justify-center h-[60vh] px-6 text-center">
             <motion.div
@@ -954,7 +955,7 @@ export default function App() {
                     className="flex items-center gap-3 px-8 py-4 bg-stone-800 text-white rounded-full hover:bg-black transition-all shadow-xl hover:scale-105 active:scale-95"
                   >
                     <Plus className="w-5 h-5" />
-                    <span className="text-xs font-bold tracking-widest uppercase">새 시집 만들기</span>
+                    <span className="text-xs font-bold tracking-widest uppercase">시집 추가</span>
                   </button>
                 </div>
 
@@ -1076,12 +1077,12 @@ export default function App() {
                         </label>
                         <span className="text-[10px] font-mono text-stone-300">{settings.themeColor}</span>
                       </div>
-                      <div className="flex gap-6">
-                        {['#f5f5f4', '#fafaf9', '#ffffff', '#e7e5e4', '#d6d3d1'].map(color => (
+                      <div className="flex flex-wrap gap-4">
+                        {['#f5f5f4', '#fafaf9', '#ffffff', '#e7e5e4', '#d6d3d1', '#fef9c3', '#dcfce7', '#fce7f3', '#f5ebe0', '#f3e8ff', '#262626'].map(color => (
                           <button
                             key={color}
                             onClick={() => handleUpdateSettings({ themeColor: color })}
-                            className={`w-12 h-12 rounded-2xl border-2 transition-all duration-500 ${settings.themeColor === color ? 'border-stone-800 scale-110 shadow-lg' : 'border-transparent hover:scale-105'}`}
+                            className={`w-10 h-10 rounded-2xl border-2 transition-all duration-500 ${settings.themeColor === color ? 'border-stone-800 scale-110 shadow-lg' : 'border-transparent hover:scale-105'}`}
                             style={{ backgroundColor: color }}
                           />
                         ))}
@@ -1213,7 +1214,7 @@ export default function App() {
                       className="flex items-center gap-2 px-6 py-3 bg-white text-stone-800 border border-stone-200 rounded-full hover:bg-stone-50 transition-all text-sm font-bold tracking-widest uppercase shadow-sm"
                     >
                       <Book className="w-4 h-4" />
-                      전체 미리보기
+                      미리보기
                     </button>
                   </div>
                 </div>
@@ -1401,7 +1402,7 @@ export default function App() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="relative w-full h-[calc(100vh-6rem)]"
+                className={`relative w-full transition-all duration-500 ${isFullscreen ? 'h-screen' : 'h-[calc(100vh-6rem)]'}`}
               >
                 {poems.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-stone-400">
@@ -1431,7 +1432,7 @@ export default function App() {
                           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
                           
                           {/* Floating Toolbar */}
-                          <div className="absolute bottom-24 md:bottom-28 left-1/2 -translate-x-1/2 z-30 flex flex-wrap justify-center items-center gap-2 p-2 w-[95%] md:w-auto bg-black/80 backdrop-blur-md border border-white/10 rounded-2xl md:rounded-full shadow-2xl">
+                          <div className={`absolute top-4 md:top-8 left-1/2 -translate-x-1/2 z-30 flex flex-wrap justify-center items-center gap-2 p-2 w-[95%] md:w-auto bg-black/80 backdrop-blur-md border border-white/10 rounded-2xl md:rounded-full shadow-2xl transition-all duration-500 ${isFullscreen ? '-translate-y-24 opacity-0' : 'translate-y-0 opacity-100'}`}>
                             <div className="flex items-center gap-1 px-2 border-r border-white/10">
                               {(['sm', 'base', 'lg', 'xl', '2xl', '3xl'] as Poem['fontSize'][]).map(size => (
                                 <button
@@ -1487,6 +1488,13 @@ export default function App() {
                               <Wand2 className={`w-4 h-4 ${isGenerating ? 'animate-pulse' : ''}`} />
                             </button>
                             <button
+                              onClick={() => setIsFullscreen(!isFullscreen)}
+                              className="p-2 text-stone-400 hover:text-white transition-all border-r border-white/10"
+                              title={isFullscreen ? "전체화면 종료" : "전체화면 보기"}
+                            >
+                              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                            </button>
+                            <button
                               onClick={() => setShowExportModal(true)}
                               className="p-2 text-stone-400 hover:text-white transition-all border-r border-white/10"
                               title="파일로 저장"
@@ -1507,8 +1515,19 @@ export default function App() {
                             </button>
                           </div>
 
+                          {/* Exit Fullscreen Button (only visible when fullscreen) */}
+                          {isFullscreen && (
+                            <button 
+                              onClick={() => setIsFullscreen(false)}
+                              className="absolute top-8 right-8 z-50 p-4 bg-black/40 backdrop-blur-md text-white rounded-full hover:bg-black/60 transition-all"
+                              title="전체화면 종료"
+                            >
+                              <Minimize2 className="w-6 h-6" />
+                            </button>
+                          )}
+
                           <div className="relative w-full h-full overflow-y-auto custom-scrollbar">
-                            <div className={`flex flex-col items-center justify-center min-h-full pt-12 pb-56 md:pt-24 md:pb-48 px-6 md:px-12 max-w-4xl mx-auto text-${poems[activePoemIndex].textAlign || 'center'}`} style={{ fontFamily: `'${poems[activePoemIndex].fontFamily || 'Noto Serif KR'}', serif` }}>
+                            <div className={`flex flex-col items-center justify-center min-h-full pt-32 pb-32 md:py-32 px-6 md:px-12 max-w-4xl mx-auto text-${poems[activePoemIndex].textAlign || 'center'}`} style={{ fontFamily: `'${poems[activePoemIndex].fontFamily || 'Noto Serif KR'}', serif` }}>
                               <motion.h2 
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -1531,21 +1550,21 @@ export default function App() {
                       </AnimatePresence>
 
                       {/* Controls */}
-                      <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-8 z-20">
+                      <div className={`absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-8 z-20 transition-all duration-500`}>
                         <button 
                           onClick={() => setActivePoemIndex(prev => Math.max(0, prev - 1))}
                           disabled={activePoemIndex === 0}
-                          className="p-3 transition-all rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-20 text-white"
+                          className="p-3 transition-all rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-20 text-white shadow-lg"
                         >
                           <ChevronLeft className="w-6 h-6" />
                         </button>
-                        <span className="text-xs tracking-[0.5em] text-stone-500 uppercase">
+                        <span className="text-xs tracking-[0.5em] text-stone-500 uppercase whitespace-nowrap bg-black/20 px-4 py-2 rounded-full backdrop-blur-sm">
                           {activePoemIndex + 1} / {poems.length}
                         </span>
                         <button 
                           onClick={() => setActivePoemIndex(prev => Math.min(poems.length - 1, prev + 1))}
                           disabled={activePoemIndex === poems.length - 1}
-                          className="p-3 transition-all rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-20 text-white"
+                          className="p-3 transition-all rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-20 text-white shadow-lg"
                         >
                           <ChevronRight className="w-6 h-6" />
                         </button>
@@ -1593,10 +1612,10 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-0 bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-stone-200"
+              className="w-full max-w-4xl max-h-[90vh] grid grid-cols-1 md:grid-cols-2 gap-0 bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-stone-200"
             >
               {/* Left: Preview */}
-              <div className="relative bg-stone-100 aspect-[3/4] md:aspect-auto flex items-center justify-center overflow-hidden">
+              <div className="relative bg-stone-100 aspect-[3/4] md:aspect-auto flex items-center justify-center overflow-hidden shrink-0">
                 {coverPreviewUrl ? (
                   <motion.img 
                     initial={{ opacity: 0 }}
@@ -1625,12 +1644,7 @@ export default function App() {
               </div>
 
               {/* Right: Form */}
-              <div className="p-12 flex flex-col justify-center space-y-8">
-                <div>
-                  <h2 className="text-3xl font-light tracking-tight mb-2">{editingBook.id ? '시집 수정' : '새 시집 만들기'}</h2>
-                  <p className="text-sm text-stone-500">시집의 제목과 표지 스타일을 선택해주세요.</p>
-                </div>
-                
+              <div className="p-8 md:p-12 flex flex-col justify-center space-y-8 overflow-y-auto">
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold tracking-widest uppercase text-stone-400">시집 제목</label>
