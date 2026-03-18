@@ -192,8 +192,13 @@ export default function App() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-    } catch (error) {
+    } catch (error: any) {
+      // Ignore the error if the user closed the popup
+      if (error?.code === 'auth/popup-closed-by-user') {
+        return;
+      }
       console.error("Login error:", error);
+      alert("로그인 중 오류가 발생했습니다: " + (error instanceof Error ? error.message : String(error)));
     }
   };
 
