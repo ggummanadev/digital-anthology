@@ -33,6 +33,7 @@ export interface AppSettings {
   defaultFontSize: 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl';
   photoOpacity: number;
   version: string;
+  geminiApiKey?: string;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -40,7 +41,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   defaultStyle: 'watercolor',
   defaultFontSize: 'xl',
   photoOpacity: 0.6,
-  version: '1.1.3'
+  version: '1.1.3',
+  geminiApiKey: ''
 };
 
 export const AVAILABLE_FONTS = [

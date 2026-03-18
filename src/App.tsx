@@ -1,6 +1,6 @@
 import { useState, useEffect, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Book, Save, Loader2, ChevronRight, ChevronLeft, FileCode, FileText, LogIn, LogOut, User, RefreshCw, Type, AlignLeft, AlignCenter, AlignRight, Wand2, Download, Palette, Settings, Trash2, Edit3, Image as ImageIcon, Upload, ArrowLeft, Share2, Database, Eye, Maximize2, Minimize2 } from 'lucide-react';
+import { Plus, Book, Save, Loader2, ChevronRight, ChevronLeft, FileCode, FileText, LogIn, LogOut, User, RefreshCw, Type, AlignLeft, AlignCenter, AlignRight, Wand2, Download, Palette, Settings, Trash2, Edit3, Image as ImageIcon, Upload, ArrowLeft, Share2, Database, Eye, Maximize2, Minimize2, Key } from 'lucide-react';
 import { Poem, Book as BookType, ImageStyle, IMAGE_STYLES, AVAILABLE_FONTS, AppSettings, DEFAULT_SETTINGS } from './types';
 import { generatePoemImage, generateBookCover } from './services/gemini';
 import { compressBase64Image } from './services/imageUtils';
@@ -211,7 +211,7 @@ export default function App() {
       let finalCoverUrl = coverPreviewUrl;
       
       if (!finalCoverUrl) {
-        const coverImageUrl = await generateBookCover(editingBook.title, editingBook.style);
+        const coverImageUrl = await generateBookCover(editingBook.title, editingBook.style, settings.geminiApiKey);
         finalCoverUrl = await compressBase64Image(coverImageUrl, 800, 0.7);
       }
 
@@ -247,7 +247,7 @@ export default function App() {
     if (!editingBook.title) return;
     setIsGenerating(true);
     try {
-      const coverImageUrl = await generateBookCover(editingBook.title, editingBook.style);
+      const coverImageUrl = await generateBookCover(editingBook.title, editingBook.style, settings.geminiApiKey);
       const compressedCover = await compressBase64Image(coverImageUrl, 800, 0.7);
       setCoverPreviewUrl(compressedCover);
     } catch (error) {
@@ -313,7 +313,7 @@ export default function App() {
       let imageUrl = editingPoem.imageUrl;
       
       if (!imageUrl) {
-        const generatedImage = await generatePoemImage(editingPoem.title, editingPoem.content, editingPoem.style);
+        const generatedImage = await generatePoemImage(editingPoem.title, editingPoem.content, editingPoem.style, settings.geminiApiKey);
         imageUrl = await compressBase64Image(generatedImage, 1024, 0.7);
       }
 
@@ -457,7 +457,7 @@ export default function App() {
   const handleRegenerateImage = async (poem: Poem) => {
     setIsGenerating(true);
     try {
-      const generatedImage = await generatePoemImage(poem.title, poem.content, poem.style);
+      const generatedImage = await generatePoemImage(poem.title, poem.content, poem.style, settings.geminiApiKey);
       const imageUrl = await compressBase64Image(generatedImage, 1024, 0.7);
       
       const poemRef = doc(db, 'poems', poem.id);
@@ -1153,6 +1153,36 @@ export default function App() {
                           onChange={(e) => handleUpdateSettings({ photoOpacity: parseFloat(e.target.value) })}
                           className="w-full h-2 bg-stone-100 rounded-lg appearance-none cursor-pointer accent-stone-800"
                         />
+                      </div>
+                    </section>
+
+                    {/* Gemini API Key */}
+                    <section className="space-y-6">
+                      <div className="flex justify-between items-center">
+                        <label className="flex items-center gap-3 text-[10px] font-bold tracking-[0.3em] uppercase text-stone-400">
+                          <Key className="w-4 h-4" />
+                          Gemini API Key
+                        </label>
+                        <a 
+                          href="https://aistudio.google.com/app/apikey" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-[10px] text-stone-400 hover:text-stone-800 underline"
+                        >
+                          키 발급받기
+                        </a>
+                      </div>
+                      <div className="relative">
+                        <input 
+                          type="password"
+                          defaultValue={settings.geminiApiKey || ''}
+                          onBlur={(e) => handleUpdateSettings({ geminiApiKey: e.target.value })}
+                          placeholder="API 키를 입력하세요"
+                          className="w-full px-4 py-4 bg-stone-50 border border-stone-100 rounded-2xl focus:border-stone-800 focus:outline-none transition-all text-sm font-mono"
+                        />
+                        <p className="mt-2 text-[10px] text-stone-400 leading-relaxed">
+                          * 입력하신 키는 본인의 브라우저와 개인 데이터베이스에만 안전하게 저장되며, 이미지 생성 시에만 사용됩니다. (입력 후 포커스를 해제하면 자동 저장됩니다)
+                        </p>
                       </div>
                     </section>
 

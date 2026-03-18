@@ -1,17 +1,17 @@
 import { GoogleGenAI } from "@google/genai";
 import { ImageStyle } from "../types";
 
-const getAI = () => {
-  const apiKey = process.env.GEMINI_API_KEY;
+const getAI = (customApiKey?: string) => {
+  const apiKey = customApiKey || process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not configured");
+    throw new Error("GEMINI_API_KEY is not configured. Please set it in Settings.");
   }
   return new GoogleGenAI({ apiKey });
 };
 
-export const generatePoemImage = async (poemTitle: string, poemContent: string, style: ImageStyle): Promise<string> => {
+export const generatePoemImage = async (poemTitle: string, poemContent: string, style: ImageStyle, customApiKey?: string): Promise<string> => {
   try {
-    const ai = getAI();
+    const ai = getAI(customApiKey);
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
       contents: [
@@ -54,9 +54,9 @@ export const generatePoemImage = async (poemTitle: string, poemContent: string, 
   }
 };
 
-export const generateBookCover = async (bookTitle: string, style: ImageStyle): Promise<string> => {
+export const generateBookCover = async (bookTitle: string, style: ImageStyle, customApiKey?: string): Promise<string> => {
   try {
-    const ai = getAI();
+    const ai = getAI(customApiKey);
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
       contents: [
