@@ -232,7 +232,7 @@ export default function App() {
       setEditingBook({ title: '', style: settings.defaultStyle });
     } catch (error) {
       console.error("Save book error:", error);
-      alert("시집 저장 중 오류가 발생했습니다.");
+      alert("시집 저장 중 오류가 발생했습니다: " + (error instanceof Error ? error.message : String(error)));
     } finally {
       setIsGenerating(false);
     }
@@ -247,7 +247,7 @@ export default function App() {
       setCoverPreviewUrl(compressedCover);
     } catch (error) {
       console.error("Preview cover error:", error);
-      alert("표지 생성 중 오류가 발생했습니다.");
+      alert("표지 생성 중 오류가 발생했습니다: " + (error instanceof Error ? error.message : String(error)));
     } finally {
       setIsGenerating(false);
     }
@@ -347,7 +347,7 @@ export default function App() {
       });
     } catch (error) {
       console.error("Error saving poem:", error);
-      alert("저장 중 오류가 발생했습니다.");
+      alert("저장 중 오류가 발생했습니다: " + (error instanceof Error ? error.message : String(error)));
     } finally {
       setIsGenerating(false);
     }
@@ -462,7 +462,7 @@ export default function App() {
       }).catch(e => handleFirestoreError(e, OperationType.UPDATE, `poems/${poem.id}`));
     } catch (error) {
       console.error("Regenerate error:", error);
-      alert("이미지 재생성 중 오류가 발생했습니다.");
+      alert("이미지 재생성 중 오류가 발생했습니다: " + (error instanceof Error ? error.message : String(error)));
     } finally {
       setIsGenerating(false);
     }
