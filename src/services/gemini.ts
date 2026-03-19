@@ -9,11 +9,30 @@ const getAI = (customApiKey?: string) => {
   return new GoogleGenAI({ apiKey });
 };
 
+const getStylePrompt = (style: ImageStyle): string => {
+  switch (style) {
+    case 'watercolor':
+      return "Soft, transparent watercolor painting with delicate brushstrokes, bleeding colors, and a dreamy, artistic feel. High quality, fine art.";
+    case 'oil-painting':
+      return "Classic oil painting with thick texture, visible impasto brushstrokes, rich deep colors, and a traditional masterpiece feel. High quality, canvas texture.";
+    case 'pencil-sketch':
+      return "Detailed monochrome pencil sketch, fine graphite lines, realistic shading, hand-drawn charcoal art on textured paper. No colors, black and white only.";
+    case 'cyberpunk':
+      return "Futuristic cyberpunk city, neon glowing lights in purple and cyan, rainy night, high-tech atmosphere, cinematic lighting, digital art.";
+    case 'dreamy':
+      return "Surreal and ethereal atmosphere, soft glowing light, floating elements, pastel colors, magical and fantasy-like scenery. High quality, digital art.";
+    case 'minimalist':
+      return "Clean minimalist design, vast negative space, simple geometric shapes, muted neutral colors, zen-like calm and balance. High quality, modern art.";
+    default:
+      return "Artistic and atmospheric background.";
+  }
+};
+
 const generateWithPollinations = async (prompt: string, width: number, height: number): Promise<string> => {
   try {
-    const encodedPrompt = encodeURIComponent(prompt);
+    // Pollinations works better with descriptive English prompts
     const seed = Math.floor(Math.random() * 1000000);
-    const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&nologo=true&seed=${seed}`;
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&nologo=true&seed=${seed}&model=flux`;
     
     const response = await fetch(url);
     if (!response.ok) throw new Error("Pollinations service unavailable");
@@ -26,33 +45,45 @@ const generateWithPollinations = async (prompt: string, width: number, height: n
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.warn("Pollinations failed, falling back to Unsplash/Picsum:", error);
+    console.warn("Pollinations failed:", error);
     throw error;
   }
 };
 
-const generateWithStockPhoto = async (keyword: string, width: number, height: number): Promise<string> => {
-  // Picsum is extremely reliable as a final fallback
-  const seed = encodeURIComponent(keyword.split(' ')[0] || 'nature');
-  const url = `https://picsum.photos/seed/${seed}/${width}/${height}`;
+const generateWithStockPhoto = async (style: ImageStyle, keyword: string, width: number, height: number): Promise<string> => {
+  // Map styles to relevant Unsplash keywords for better fallback
+  const styleKeywords: Record<ImageStyle, string> = {
+    'watercolor': 'watercolor,painting,art',
+    'oil-painting': 'oil-painting,classic-art,canvas',
+    'pencil-sketch': 'sketch,drawing,pencil,charcoal',
+    'cyberpunk': 'neon,city,night,cyberpunk',
+    'dreamy': 'dreamy,ethereal,fantasy,clouds',
+    'minimalist': 'minimalist,simple,clean,abstract'
+  };
+
+  const searchKeyword = `${styleKeywords[style] || 'nature'},${keyword.split(' ')[0]}`;
+  const url = `https://source.unsplash.com/featured/${width}x${height}?${encodeURIComponent(searchKeyword)}`;
   
-  const response = await fetch(url);
-  if (!response.ok) {
-    // Ultimate fallback to a static high-quality nature image if even Picsum fails
-    return "https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=1000&q=80";
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Stock photo service unavailable");
+    
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    // Ultimate fallback to a reliable Picsum image with a style-based seed
+    return `https://picsum.photos/seed/${style}/${width}/${height}`;
   }
-  
-  const blob = await response.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
 };
 
 export const generatePoemImage = async (poemTitle: string, poemContent: string, style: ImageStyle, customApiKey?: string): Promise<string> => {
-  const promptText = `Artistic background for poem: ${poemTitle}. Style: ${style}. Atmospheric, no text.`;
+  const stylePrompt = getStylePrompt(style);
+  const promptText = `${stylePrompt} The theme is inspired by a poem titled "${poemTitle}". Atmospheric, evocative, no text, no characters, background only.`;
 
   // 1. Try Gemini
   const ai = getAI(customApiKey);
@@ -78,14 +109,15 @@ export const generatePoemImage = async (poemTitle: string, poemContent: string, 
   try {
     return await generateWithPollinations(promptText, 1080, 1920);
   } catch (e) {
-    // 3. Final Fallback: Stock Photo
-    console.log("All AI services failed, using high-quality stock photo fallback...");
-    return await generateWithStockPhoto(`${style} ${poemTitle}`, 1080, 1920);
+    // 3. Final Fallback: Stock Photo (now style-aware)
+    console.log("All AI services failed, using style-aware stock photo fallback...");
+    return await generateWithStockPhoto(style, poemTitle, 1080, 1920);
   }
 };
 
 export const generateBookCover = async (bookTitle: string, style: ImageStyle, customApiKey?: string): Promise<string> => {
-  const promptText = `Elegant book cover for poetry anthology: ${bookTitle}. Style: ${style}. No text.`;
+  const stylePrompt = getStylePrompt(style);
+  const promptText = `Professional book cover background. ${stylePrompt} Theme: "${bookTitle}". Elegant, artistic, high quality, no text, background only.`;
 
   // 1. Try Gemini
   const ai = getAI(customApiKey);
@@ -111,8 +143,8 @@ export const generateBookCover = async (bookTitle: string, style: ImageStyle, cu
   try {
     return await generateWithPollinations(promptText, 1200, 1600);
   } catch (e) {
-    // 3. Final Fallback: Stock Photo
-    console.log("All AI services failed, using high-quality stock photo fallback...");
-    return await generateWithStockPhoto(`${style} book cover`, 1200, 1600);
+    // 3. Final Fallback: Stock Photo (now style-aware)
+    console.log("All AI services failed, using style-aware stock photo fallback...");
+    return await generateWithStockPhoto(style, bookTitle, 1200, 1600);
   }
 };

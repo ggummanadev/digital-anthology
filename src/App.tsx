@@ -1647,10 +1647,10 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="w-full max-w-4xl max-h-[90vh] grid grid-cols-1 md:grid-cols-2 gap-0 bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-stone-200"
+              className="w-full max-w-4xl max-h-[90vh] grid grid-cols-1 md:grid-cols-2 gap-0 bg-white rounded-[2.5rem] shadow-2xl overflow-y-auto md:overflow-hidden border border-stone-200"
             >
               {/* Left: Preview */}
-              <div className="relative bg-stone-100 aspect-[3/4] md:aspect-auto flex items-center justify-center overflow-hidden shrink-0">
+              <div className="relative bg-stone-100 aspect-video md:aspect-auto flex items-center justify-center overflow-hidden shrink-0">
                 {coverPreviewUrl ? (
                   <motion.img 
                     initial={{ opacity: 0 }}
@@ -1679,7 +1679,7 @@ export default function App() {
               </div>
 
               {/* Right: Form */}
-              <div className="p-8 md:p-12 flex flex-col justify-center space-y-8 overflow-y-auto">
+              <div className="p-8 md:p-12 flex flex-col justify-center space-y-8 md:overflow-y-auto">
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold tracking-widest uppercase text-stone-400">시집 제목</label>
