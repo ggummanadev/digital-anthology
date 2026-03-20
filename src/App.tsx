@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Book, Save, Loader2, ChevronRight, ChevronLeft, FileCode, FileText, LogIn, LogOut, User, RefreshCw, Type, AlignLeft, AlignCenter, AlignRight, Wand2, Download, Palette, Settings, Trash2, Edit3, Image as ImageIcon, Upload, ArrowLeft, Share2, Database, Eye, Maximize2, Minimize2, Key, Sparkles } from 'lucide-react';
 import { Poem, Book as BookType, ImageStyle, IMAGE_STYLES, AVAILABLE_FONTS, AppSettings, DEFAULT_SETTINGS } from './types';
 import { generatePoemImage, generateBookCover } from './services/gemini';
-import { compressBase64Image } from './services/imageUtils';
+import { compressImage } from './services/imageUtils';
 import { db, auth } from './services/firebase';
 import { handleFirestoreError, OperationType } from './services/firestoreErrorHandler';
 import { getDocFromServer, getDocs } from 'firebase/firestore';
@@ -212,7 +212,7 @@ export default function App() {
       
       if (!finalCoverUrl) {
         const coverImageUrl = await generateBookCover(editingBook.title, editingBook.style, settings.geminiApiKey, settings.imageProvider);
-        finalCoverUrl = await compressBase64Image(coverImageUrl, 800, 0.7);
+        finalCoverUrl = await compressImage(coverImageUrl, 800, 0.7);
       }
 
       if (editingBook.id) {
@@ -248,7 +248,7 @@ export default function App() {
     setIsGenerating(true);
     try {
       const coverImageUrl = await generateBookCover(editingBook.title, editingBook.style, settings.geminiApiKey, settings.imageProvider);
-      const compressedCover = await compressBase64Image(coverImageUrl, 800, 0.7);
+      const compressedCover = await compressImage(coverImageUrl, 800, 0.7);
       setCoverPreviewUrl(compressedCover);
     } catch (error) {
       console.error("Preview cover error:", error);
@@ -299,7 +299,7 @@ export default function App() {
     const reader = new FileReader();
     reader.onload = async (event) => {
       const base64 = event.target?.result as string;
-      const compressed = await compressBase64Image(base64, 1024, 0.7);
+      const compressed = await compressImage(base64, 1024, 0.7);
       setEditingPoem({ ...editingPoem, imageUrl: compressed, imageOpacity: settings.photoOpacity });
     };
     reader.readAsDataURL(file);
@@ -314,7 +314,7 @@ export default function App() {
       
       if (!imageUrl) {
         const generatedImage = await generatePoemImage(editingPoem.title, editingPoem.content, editingPoem.style, settings.geminiApiKey, settings.imageProvider);
-        imageUrl = await compressBase64Image(generatedImage, 1024, 0.7);
+        imageUrl = await compressImage(generatedImage, 1024, 0.7);
       }
 
       const poemData = {
@@ -458,7 +458,7 @@ export default function App() {
     setIsGenerating(true);
     try {
       const generatedImage = await generatePoemImage(poem.title, poem.content, poem.style, settings.geminiApiKey, settings.imageProvider);
-      const imageUrl = await compressBase64Image(generatedImage, 1024, 0.7);
+      const imageUrl = await compressImage(generatedImage, 1024, 0.7);
       
       const poemRef = doc(db, 'poems', poem.id);
       await updateDoc(poemRef, {
