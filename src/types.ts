@@ -1,4 +1,5 @@
 export type ImageStyle = 'watercolor' | 'oil-painting' | 'pencil-sketch' | 'cyberpunk' | 'dreamy' | 'minimalist';
+export type ImageProvider = 'auto' | 'gemini' | 'pollinations' | 'unsplash';
 
 export interface Book {
   id: string;
@@ -34,6 +35,7 @@ export interface AppSettings {
   photoOpacity: number;
   version: string;
   geminiApiKey?: string;
+  imageProvider?: ImageProvider;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -42,7 +44,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   defaultFontSize: 'xl',
   photoOpacity: 0.6,
   version: '1.1.3',
-  geminiApiKey: ''
+  geminiApiKey: '',
+  imageProvider: 'auto'
 };
 
 export const AVAILABLE_FONTS = [

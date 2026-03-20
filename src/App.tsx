@@ -1,6 +1,6 @@
 import { useState, useEffect, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Book, Save, Loader2, ChevronRight, ChevronLeft, FileCode, FileText, LogIn, LogOut, User, RefreshCw, Type, AlignLeft, AlignCenter, AlignRight, Wand2, Download, Palette, Settings, Trash2, Edit3, Image as ImageIcon, Upload, ArrowLeft, Share2, Database, Eye, Maximize2, Minimize2, Key } from 'lucide-react';
+import { Plus, Book, Save, Loader2, ChevronRight, ChevronLeft, FileCode, FileText, LogIn, LogOut, User, RefreshCw, Type, AlignLeft, AlignCenter, AlignRight, Wand2, Download, Palette, Settings, Trash2, Edit3, Image as ImageIcon, Upload, ArrowLeft, Share2, Database, Eye, Maximize2, Minimize2, Key, Sparkles } from 'lucide-react';
 import { Poem, Book as BookType, ImageStyle, IMAGE_STYLES, AVAILABLE_FONTS, AppSettings, DEFAULT_SETTINGS } from './types';
 import { generatePoemImage, generateBookCover } from './services/gemini';
 import { compressBase64Image } from './services/imageUtils';
@@ -211,7 +211,7 @@ export default function App() {
       let finalCoverUrl = coverPreviewUrl;
       
       if (!finalCoverUrl) {
-        const coverImageUrl = await generateBookCover(editingBook.title, editingBook.style, settings.geminiApiKey);
+        const coverImageUrl = await generateBookCover(editingBook.title, editingBook.style, settings.geminiApiKey, settings.imageProvider);
         finalCoverUrl = await compressBase64Image(coverImageUrl, 800, 0.7);
       }
 
@@ -247,7 +247,7 @@ export default function App() {
     if (!editingBook.title) return;
     setIsGenerating(true);
     try {
-      const coverImageUrl = await generateBookCover(editingBook.title, editingBook.style, settings.geminiApiKey);
+      const coverImageUrl = await generateBookCover(editingBook.title, editingBook.style, settings.geminiApiKey, settings.imageProvider);
       const compressedCover = await compressBase64Image(coverImageUrl, 800, 0.7);
       setCoverPreviewUrl(compressedCover);
     } catch (error) {
@@ -313,7 +313,7 @@ export default function App() {
       let imageUrl = editingPoem.imageUrl;
       
       if (!imageUrl) {
-        const generatedImage = await generatePoemImage(editingPoem.title, editingPoem.content, editingPoem.style, settings.geminiApiKey);
+        const generatedImage = await generatePoemImage(editingPoem.title, editingPoem.content, editingPoem.style, settings.geminiApiKey, settings.imageProvider);
         imageUrl = await compressBase64Image(generatedImage, 1024, 0.7);
       }
 
@@ -457,7 +457,7 @@ export default function App() {
   const handleRegenerateImage = async (poem: Poem) => {
     setIsGenerating(true);
     try {
-      const generatedImage = await generatePoemImage(poem.title, poem.content, poem.style, settings.geminiApiKey);
+      const generatedImage = await generatePoemImage(poem.title, poem.content, poem.style, settings.geminiApiKey, settings.imageProvider);
       const imageUrl = await compressBase64Image(generatedImage, 1024, 0.7);
       
       const poemRef = doc(db, 'poems', poem.id);
@@ -1061,14 +1061,22 @@ export default function App() {
                 exit={{ opacity: 0, x: -20 }}
                 className="max-w-3xl px-8 mx-auto"
               >
-                <div className="flex items-center gap-6 mb-12">
-                  <button onClick={() => setCurrentView('books')} className="p-3 hover:bg-black/5 rounded-full transition-colors border border-black/5 bg-white/50">
-                    <ArrowLeft className="w-6 h-6" />
-                  </button>
-                  <div>
-                    <h2 className="text-3xl font-light tracking-tight">환경 설정</h2>
-                    <p className="text-xs uppercase tracking-[0.3em] text-stone-400 mt-1">App Customization & Data</p>
+                <div className="flex items-center justify-between mb-12">
+                  <div className="flex items-center gap-6">
+                    <button onClick={() => setCurrentView('books')} className="p-3 hover:bg-black/5 rounded-full transition-colors border border-black/5 bg-white/50">
+                      <ArrowLeft className="w-6 h-6" />
+                    </button>
+                    <div>
+                      <h2 className="text-3xl font-light tracking-tight">환경 설정</h2>
+                      <p className="text-xs uppercase tracking-[0.3em] text-stone-400 mt-1">App Customization & Data</p>
+                    </div>
                   </div>
+                  <button 
+                    onClick={() => setCurrentView('books')} 
+                    className="px-6 py-3 bg-stone-800 text-white rounded-full text-xs font-bold tracking-widest uppercase hover:bg-black transition-colors shadow-md"
+                  >
+                    설정 저장
+                  </button>
                 </div>
 
                 <div className="bg-white rounded-[3rem] border border-stone-200 shadow-sm overflow-hidden">
@@ -1183,6 +1191,31 @@ export default function App() {
                         <p className="mt-2 text-[10px] text-stone-400 leading-relaxed">
                           * 입력하신 키는 본인의 브라우저와 개인 데이터베이스에만 안전하게 저장되며, 이미지 생성 시에만 사용됩니다. (입력 후 포커스를 해제하면 자동 저장됩니다)
                         </p>
+                      </div>
+                    </section>
+
+                    {/* Image Provider Selection */}
+                    <section className="space-y-6">
+                      <label className="flex items-center gap-3 text-[10px] font-bold tracking-[0.3em] uppercase text-stone-400">
+                        <Sparkles className="w-4 h-4" />
+                        이미지 생성 서비스
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {[
+                          { id: 'auto', label: '자동 (추천)', desc: 'Gemini -> Pollinations -> 사진 순으로 시도' },
+                          { id: 'gemini', label: 'Google Gemini', desc: 'API 키 필요, 최고 품질' },
+                          { id: 'pollinations', label: 'Pollinations AI', desc: '무료 AI 이미지 생성' },
+                          { id: 'unsplash', label: 'Unsplash / Picsum', desc: '고화질 예술 사진 검색' }
+                        ].map(provider => (
+                          <button
+                            key={provider.id}
+                            onClick={() => handleUpdateSettings({ imageProvider: provider.id as any })}
+                            className={`p-4 text-left rounded-2xl border transition-all ${settings.imageProvider === provider.id || (!settings.imageProvider && provider.id === 'auto') ? 'border-stone-800 bg-stone-50 shadow-sm' : 'border-stone-200 hover:border-stone-300'}`}
+                          >
+                            <div className="text-sm font-bold mb-1 text-stone-800">{provider.label}</div>
+                            <div className="text-xs text-stone-500">{provider.desc}</div>
+                          </button>
+                        ))}
                       </div>
                     </section>
 

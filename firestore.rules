@@ -91,9 +91,11 @@ service cloud.firestore {
     }
 
     function isValidSettings(data) {
-      return data.keys().hasAny(['themeColor', 'defaultStyle', 'defaultFontSize', 'photoOpacity', 'version']) &&
+      return data.keys().hasAny(['themeColor', 'defaultStyle', 'defaultFontSize', 'photoOpacity', 'version', 'geminiApiKey', 'imageProvider']) &&
              (!('themeColor' in data) || data.themeColor is string) &&
-             (!('photoOpacity' in data) || data.photoOpacity is number);
+             (!('photoOpacity' in data) || data.photoOpacity is number) &&
+             (!('geminiApiKey' in data) || data.geminiApiKey is string) &&
+             (!('imageProvider' in data) || data.imageProvider is string);
     }
 
     // ===============================================================

@@ -81,11 +81,24 @@ const generateWithStockPhoto = async (style: ImageStyle, keyword: string, width:
   }
 };
 
-export const generatePoemImage = async (poemTitle: string, poemContent: string, style: ImageStyle, customApiKey?: string): Promise<string> => {
+export const generatePoemImage = async (poemTitle: string, poemContent: string, style: ImageStyle, customApiKey?: string, provider: 'auto' | 'gemini' | 'pollinations' | 'unsplash' = 'auto'): Promise<string> => {
   const stylePrompt = getStylePrompt(style);
   const promptText = `${stylePrompt} The theme is inspired by a poem titled "${poemTitle}". Atmospheric, evocative, no text, no characters, background only.`;
 
-  // 1. Try Gemini
+  if (provider === 'unsplash') {
+    return await generateWithStockPhoto(style, poemTitle, 1080, 1920);
+  }
+
+  if (provider === 'pollinations') {
+    try {
+      return await generateWithPollinations(promptText, 1080, 1920);
+    } catch (e) {
+      console.log("Pollinations failed, using style-aware stock photo fallback...");
+      return await generateWithStockPhoto(style, poemTitle, 1080, 1920);
+    }
+  }
+
+  // 1. Try Gemini (if auto or gemini)
   const ai = getAI(customApiKey);
   if (ai) {
     try {
@@ -102,10 +115,15 @@ export const generatePoemImage = async (poemTitle: string, poemContent: string, 
       }
     } catch (e) {
       console.warn("Gemini failed, trying Pollinations...");
+      if (provider === 'gemini') {
+        throw new Error("Gemini API 호출에 실패했습니다. API 키를 확인하거나 다른 서비스를 선택해주세요.");
+      }
     }
+  } else if (provider === 'gemini') {
+    throw new Error("Gemini API 키가 설정되지 않았습니다.");
   }
 
-  // 2. Try Pollinations
+  // 2. Try Pollinations (fallback for auto)
   try {
     return await generateWithPollinations(promptText, 1080, 1920);
   } catch (e) {
@@ -115,11 +133,24 @@ export const generatePoemImage = async (poemTitle: string, poemContent: string, 
   }
 };
 
-export const generateBookCover = async (bookTitle: string, style: ImageStyle, customApiKey?: string): Promise<string> => {
+export const generateBookCover = async (bookTitle: string, style: ImageStyle, customApiKey?: string, provider: 'auto' | 'gemini' | 'pollinations' | 'unsplash' = 'auto'): Promise<string> => {
   const stylePrompt = getStylePrompt(style);
   const promptText = `Professional book cover background. ${stylePrompt} Theme: "${bookTitle}". Elegant, artistic, high quality, no text, background only.`;
 
-  // 1. Try Gemini
+  if (provider === 'unsplash') {
+    return await generateWithStockPhoto(style, bookTitle, 1200, 1600);
+  }
+
+  if (provider === 'pollinations') {
+    try {
+      return await generateWithPollinations(promptText, 1200, 1600);
+    } catch (e) {
+      console.log("Pollinations failed, using style-aware stock photo fallback...");
+      return await generateWithStockPhoto(style, bookTitle, 1200, 1600);
+    }
+  }
+
+  // 1. Try Gemini (if auto or gemini)
   const ai = getAI(customApiKey);
   if (ai) {
     try {
@@ -136,10 +167,15 @@ export const generateBookCover = async (bookTitle: string, style: ImageStyle, cu
       }
     } catch (e) {
       console.warn("Gemini failed, trying Pollinations...");
+      if (provider === 'gemini') {
+        throw new Error("Gemini API 호출에 실패했습니다. API 키를 확인하거나 다른 서비스를 선택해주세요.");
+      }
     }
+  } else if (provider === 'gemini') {
+    throw new Error("Gemini API 키가 설정되지 않았습니다.");
   }
 
-  // 2. Try Pollinations
+  // 2. Try Pollinations (fallback for auto)
   try {
     return await generateWithPollinations(promptText, 1200, 1600);
   } catch (e) {

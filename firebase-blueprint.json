@@ -44,7 +44,9 @@
         "defaultStyle": { "type": "string" },
         "defaultFontSize": { "type": "string" },
         "photoOpacity": { "type": "number" },
-        "version": { "type": "string" }
+        "version": { "type": "string" },
+        "geminiApiKey": { "type": "string" },
+        "imageProvider": { "type": "string" }
       }
     }
   },
